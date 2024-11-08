@@ -81,11 +81,11 @@ jobs:
 
       - name: Pull and Deploy Docker Image
         env:
-          image_name: my_image
+          image_name: app_test_image
+          version: 1.0.0
           username: oluwaseun7
-         # version: ${{ env.APP_VERSION }}
         run: |
-          docker run -d -p 3000:80 $username/$image_name:1.0.0
+          docker run -d -p 8080:80 $username/$image_name:$version
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
