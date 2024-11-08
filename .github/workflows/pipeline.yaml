@@ -70,7 +70,7 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app_version
+          name: app_versio
           path: app_version.txt
 
       - name: Log into Docker Hub
