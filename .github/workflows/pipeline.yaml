@@ -85,7 +85,7 @@ jobs:
           username: oluwaseun7
           version: ${{ env.APP_VERSION }}
         run: |
-          docker run -d -p 8080:80 username/image_name:$version
+          docker run -d -p 8080:80 $username/$image_name:$version
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
