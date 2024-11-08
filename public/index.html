@@ -1,0 +1,50 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Todo List</title>
+</head>
+<body>
+    <h1>Todo List</h1>
+    <form id="taskForm">
+        <input type="text" id="taskTitle" placeholder="Enter task title" required>
+        <button type="submit">Add Task</button>
+    </form>
+    <ul id="taskList"></ul>
+
+    <script>
+        const taskForm = document.getElementById('taskForm');
+        const taskTitle = document.getElementById('taskTitle');
+        const taskList = document.getElementById('taskList');
+
+        // Add task
+        taskForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const response = await fetch('http://localhost:3000/tasks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: taskTitle.value }),
+            });
+            const task = await response.json();
+            addTaskToList(task);
+            taskTitle.value = '';
+        });
+
+        // Display tasks
+        async function fetchTasks() {
+            const response = await fetch('http://localhost:3000/tasks');
+            const tasks = await response.json();
+            tasks.forEach(addTaskToList);
+        }
+
+        function addTaskToList(task) {
+            const li = document.createElement('li');
+            li.textContent = task.title;
+            if (task.completed) li.style.textDecoration = 'line-through';
+            taskList.appendChild(li);
+        }
+
+        fetchTasks();
+    </script>
+</body>
+</html>
