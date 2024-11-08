@@ -1,0 +1,103 @@
+name: Node.js Package
+
+on:
+  push:
+    branches:
+      - origin
+
+jobs:
+  build:
+    name: build
+    if: github.ref == 'refs/heads/origin'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Greet User
+        run: echo "Welcome users!"
+
+ 
+      # Generate a random version number and assign it to APP_VERSION
+      - name: Assign Random Version
+        run: 
+          echo APP_VERSION=$((RANDOM)) >> $GITHUB_ENV
+
+      - name: "Build the Docker Image"
+        env:
+          image_name: my-image
+          version: ${{ env.APP_VERSION }}
+          username: oluwaseun7
+        run: |
+          docker build -t $username/$image_name:$version .
+
+      - name: Create app_version.txt
+        run: |
+          echo "Version: ${{ env.APP_VERSION }}" > app_version.txt
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app_version
+          path: app_version.txt
+
+      - name: Log into Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+        
+
+  Deploy:
+    name: instance-deploy
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Create app_version.txt
+        run: |
+          echo "Version: ${{ env.APP_VERSION }}" > app_version.txt
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app_version
+          path: app_version.txt
+
+      - name: Log into Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Pull and Deploy Docker Image
+        env:
+          image_name: my-image
+          username: oluwaseun7
+          version: $(cat app_version.txt | awk {print $1})
+        run: |
+          docker run -d -p 8080:80 $username/$image_name:$version
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+
+      - name: Run test
+        run:  |
+             npm test
+             npm run start
+
