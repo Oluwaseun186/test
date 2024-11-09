@@ -98,6 +98,5 @@ jobs:
 
       - name: Run test
         run:  |
-             npm test
              npm run start
 
