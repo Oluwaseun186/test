@@ -16,6 +16,7 @@ mongoose.connect('mongodb://localhost:27017/todoapp', {
     useUnifiedTopology: true,
 });
 
+
 const taskSchema = new mongoose.Schema({
     title: String,
     completed: { type: Boolean, default: false },
