@@ -98,5 +98,4 @@ jobs:
 
       - name: Run test
         run:  |
-             npm run start
-
+             npm install
