@@ -79,7 +79,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
 
-      - name: Pull and Deploy Docker Image
+      - name: Run container from Docker Image
         env:
           image_name: app_test_image
           version: 1.0.0
