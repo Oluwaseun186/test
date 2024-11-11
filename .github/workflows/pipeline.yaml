@@ -27,7 +27,7 @@ jobs:
       - name: Build the Docker Image
         env:
           image_name: test-image
-          username: dapper01
+          username: oluwaseun7
           APP_VERSION: ${{ steps.version.outputs.app_version }}
         run: |
           docker build -t $username/$image_name:${{ env.APP_VERSION }} .
@@ -47,7 +47,7 @@ jobs:
     runs-on: self-hosted
     needs: Build
     env:
-      username: dapper01
+      username: oluwaseun7
       image_name: test-image
     steps:
       - name: Download Docker Image Artifact
@@ -101,11 +101,11 @@ jobs:
           server_address: smtp.gmail.com
           server_port: 465
           secure: true
-          username: oladapper@gmail.com
+          username: adewumibode7@gmail.com
           password: ${{ secrets.EMAIL_PASSWORD }}
           subject: "Docker Image Deployed from Artifact"
-          to: "oladapolawal12@yahoo.com"
-          from: "Mr David Agba DevOps"
+          to: "shopar200@gmail.com"
+          from: "adewumibode7@gmail.com"
           body: |
             Hello,
             The latest version of the Docker image (version: ${{ needs.Build.outputs.app_version }}) has been deployed from the artifact.
