@@ -54,7 +54,23 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-        
+      - name: Send Email Notification
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: oluwaseun186
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "GitHub Action Notification: New Commit to Main Branch"
+          body: |
+            A new commit has been pushed to the main branch. 
+            Commit details:
+            - Commit message: ${{ github.event.head_commit.message }}
+            - Author: ${{ github.event.head_commit.author.name }}
+            - Commit URL: ${{ github.event.head_commit.url }}
+          to: "adewumibode7@gmail.com  # Replace with the recipient's email address
+          from: Mr Bode
+          secure: true  
 
   Deploy:
     name: instance-deploy
