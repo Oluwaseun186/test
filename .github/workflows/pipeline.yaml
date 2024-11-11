@@ -1,7 +1,10 @@
-name: CI
+name: pipeline
 
 on:
   push:
+    branches:
+      - origin  # Replace with your default branch name, like "main" or "master"
+  pull_request:
     branches:
       - origin
 
