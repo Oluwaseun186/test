@@ -1,4 +1,4 @@
-name: Node.js Package
+name: CI
 
 on:
   push:
@@ -6,113 +6,103 @@ on:
       - origin
 
 jobs:
-  build:
-    name: build
-    if: github.ref == 'refs/heads/origin'
+  Build:
+    name: instance-build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Greet User
-        run: echo "Welcome users!"
+      - name: Generate Version Number
+        id: version
+        run: |
+          TIMESTAMP=$(date +'%Y%m%d%H%M%S')
+          VERSION="v${TIMESTAMP}_${RANDOM}"
+          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV  # Set environment variable
+          echo "app_version=$VERSION" >> $GITHUB_OUTPUT  # Set job output
 
- 
-      # Generate a random version number and assign it to APP_VERSION
-      - name: Assign Random Version
-        run: 
-          echo APP_VERSION=$((RANDOM)) >> $GITHUB_ENV
-
-      - name: "Build the Docker Image"
+      - name: Build the Docker Image
         env:
-          image_name: my-image
-          version: ${{ env.APP_VERSION }}
-          username: oluwaseun7
+          image_name: test-image
+          username: dapper01
+          APP_VERSION: ${{ steps.version.outputs.app_version }}
         run: |
-          docker build -t $username/$image_name:$version .
+          docker build -t $username/$image_name:${{ env.APP_VERSION }} .
+          docker save -o test-image_${{ env.APP_VERSION }}.tar $username/$image_name:${{ env.APP_VERSION }}
 
-      - name: Create app_version.txt
-        run: |
-          echo "Version: ${{ env.APP_VERSION }}" > app_version.txt
-
-      - name: Upload Artifact
+      - name: Upload Docker Image as Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app_version
-          path: app_version.txt
+          name: docker-image
+          path: test-image_${{ env.APP_VERSION }}.tar
 
-      - name: Log into Docker Hub
-        uses: docker/login-action@v3
+    outputs:
+      app_version: ${{ steps.version.outputs.app_version }}
+
+  Deploy:
+    name: Deploy Docker Image
+    runs-on: self-hosted
+    needs: Build
+    env:
+      username: dapper01
+      image_name: test-image
+    steps:
+      - name: Download Docker Image Artifact
+        uses: actions/download-artifact@v4
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          name: docker-image
+          path: .
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+      - name: Verify Artifact Download
+        run: |
+          ls -al
+          if [ -f "test-image_${{ needs.Build.outputs.app_version }}.tar" ]; then
+            echo "Artifact found"
+          else
+            echo "Artifact not found"
+            exit 1
+          fi
 
-      - name: Install dependencies
-        run: npm install
-      - name: Send Email Notification
+      - name: Load Docker Image
+        run: |
+          docker load -i test-image_${{ needs.Build.outputs.app_version }}.tar
+
+      - name: Verify Loaded Docker Image
+        run: |
+          docker images
+
+      - name: Print Image Detail
+        run: |
+          echo "username: $username"
+          echo "image_name: $image_name"
+          echo "app_version: ${{ needs.Build.outputs.app_version }}"
+
+      - name: Stop Containers Using Port 8082 (if any)
+        run: |
+          CONTAINER_ID=$(docker ps --filter "publish=8082" -q)
+          if [ -n "$CONTAINER_ID" ]; then
+            echo "Stopping container $CONTAINER_ID"
+            docker stop $CONTAINER_ID
+          else
+            echo "No container found using port 8082"
+          fi
+
+      - name: Run Docker Containers
+        run: |
+          echo "Running container with image: $username/$image_name:${{ needs.Build.outputs.app_version }}"
+          docker run -d -p 8082:3000 $username/$image_name:${{ needs.Build.outputs.app_version }}
+
+      - name: Send email notification
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
           server_port: 465
-          username: adewumibode7@gmail.com
+          secure: true
+          username: oladapper@gmail.com
           password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "GitHub Action Notification: New Commit to Main Branch"
+          subject: "Docker Image Deployed from Artifact"
+          to: "oladapolawal12@yahoo.com"
+          from: "Mr David Agba DevOps"
           body: |
-            A new commit has been pushed to the main branch. 
-            Commit details:
-            - Commit message: ${{ github.event.head_commit.message }}
-            - Author: ${{ github.event.head_commit.author.name }}
-            - Commit URL: ${{ github.event.head_commit.url }}
-          to: "shopar200@gmail.com"  # Replace with the recipient's email address
-          from: adewumibode7@gmail.com
-          secure: true  
-
-  Deploy:
-    name: instance-deploy
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-      - name: Create app_version.txt
-        run: |
-          echo "Version: ${{ env.APP_VERSION }}" > app_version.txt
-
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: app_versio
-          path: app_version.txt
-
-      - name: Log into Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
-      - name: Run container from Docker Image
-        env:
-          image_name: app_test_image
-          version: 1.0.0
-          username: oluwaseun7
-        run: |
-          docker run -d -p 8080:80 $username/$image_name:$version
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install dependencies
-        run: npm install
-
-
-      - name: Run test!
-        run:  |
-             npm install
-             npm run test
+            Hello,
+            The latest version of the Docker image (version: ${{ needs.Build.outputs.app_version }}) has been deployed from the artifact.

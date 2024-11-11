@@ -1,6 +1,12 @@
 
-FROM nginx:alpine
+FROM node:18-slim
 
-WORKDIR /usr/share/html
+WORKDIR /app/todo/
 
-COPY . /usr/share/nginx/html
+COPY . /app/todo/
+
+RUN npm install
+
+EXPOSE 3000
+
+CMD ["npm", "run", "start"]
