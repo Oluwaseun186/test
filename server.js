@@ -3,6 +3,9 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const path = require('path');
+require('dotenv').config();
+
+const MONGODB_URL = process.env.MONGODB_URL;
 
 const app = express();
 app.use(bodyParser.json());
@@ -11,10 +14,9 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // MongoDB connection
-mongoose.connect('mongodb://localhost:27017/todoapp', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-});
+mongoose.connect(MONGODB_URL)
+  .then(() => console.log('Connected to MongoDB'))
+  .catch((error) => console.error('Error connecting to MongoDB:', error));
 
 
 const taskSchema = new mongoose.Schema({
