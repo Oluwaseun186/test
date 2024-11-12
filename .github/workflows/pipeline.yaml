@@ -62,7 +62,7 @@ jobs:
           if [ -f "test-image_${{ needs.Build.outputs.app_version }}.tar" ]; then
             echo "Artifact found"
           else
-            echo "Artifact not found"
+            echo "Artifact not found!"
             exit 1
           fi
 
