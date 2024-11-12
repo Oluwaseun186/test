@@ -101,7 +101,7 @@ jobs:
           server_address: smtp.gmail.com
           server_port: 587
           username: adewumibode7@gmail.com
-          password: ${{ secrets.SMTP_PASSWORD }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
           subject: "GitHub Action Notification: New Commit to Main Branch"
           body: |
             A new commit has been pushed to the main branch. 
@@ -109,6 +109,6 @@ jobs:
             - Commit message: ${{ github.event.head_commit.message }}
             - Author: ${{ github.event.head_commit.author.name }}
             - Commit URL: ${{ github.event.head_commit.url }}
-          to: "shopaer200@gmail.com"  # Replace with the recipient's email address
+          to: "shopar200@gmail.com"  # Replace with the recipient's email address
           from: adewumibode7@gmail.com
           secure: true
